@@ -59,10 +59,10 @@ export default function MapComponent({ hotspots, patrolRoute, selectedStation })
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%', background: '#0b0f19' }}
       >
-        {/* CartoDB Dark Matter tiles */}
+        {/* OpenStreetMap Detailed Street tiles (MapmyIndia Style) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {/* Heatmap/Hotspot Grid Circles */}

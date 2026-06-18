@@ -687,15 +687,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
   position: relative;
 }
 
-/* Legend in Map */
+/* Legend in Map (Light theme to match bright street tiles) */
 .map-legend {
   position: absolute;
   bottom: 20px;
   right: 20px;
   z-index: 1000;
-  background: rgba(17, 24, 39, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border-card);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   padding: 12px 14px;
   border-radius: 8px;
   font-size: 11px;
@@ -703,12 +704,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
   flex-direction: column;
   gap: 6px;
   pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .map-legend h4 {
   font-family: var(--font-outfit);
   font-size: 10px;
-  color: var(--text-muted);
+  color: #64748b;
   letter-spacing: 0.8px;
   margin-bottom: 4px;
 }
@@ -717,7 +719,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
+  color: #334155;
+  font-weight: 500;
 }
 
 .legend-item .dot {
@@ -738,19 +741,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .legend-item .dot.cyan { background-color: #06b6d4; }
 .legend-item .line.purple { background-color: #a855f7; }
 
-/* Custom Dark Popup Styles for Leaflet */
+/* Custom Light Popup Styles for Leaflet (MapmyIndia Light Style) */
 .leaflet-container .leaflet-popup-content-wrapper {
-  background-color: #0f172a;
-  border: 1px solid rgba(255,255,255,0.08);
-  color: var(--text-primary);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1e293b;
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   font-family: var(--font-inter);
 }
 
 .leaflet-container .leaflet-popup-tip {
-  background-color: #0f172a;
-  border: 1px solid rgba(255,255,255,0.08);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .popup-content h3 {
@@ -758,20 +761,20 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #fff;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #0f172a;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding-bottom: 4px;
 }
 
 .popup-content p {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: #475569;
   line-height: 1.5;
   margin-bottom: 3px;
 }
 
 .popup-content strong {
-  color: var(--text-primary);
+  color: #0f172a;
 }
 
 .badge-purple {
