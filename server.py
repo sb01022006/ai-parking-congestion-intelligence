@@ -5,8 +5,8 @@ import json
 import sqlite3
 import os
 
-PORT = 8000
-DB_PATH = "/Users/Syamantak1/Desktop/parking_congestion_intelligence/violations.db"
+PORT = int(os.environ.get("PORT", 8000))
+DB_PATH = os.path.join(os.path.dirname(__file__), "violations.db")
 
 class PoliceViolationHandler(http.server.BaseHTTPRequestHandler):
     def end_headers(self):
@@ -43,7 +43,12 @@ class PoliceViolationHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(b"<h1>API Server is running</h1><p>Frontend is available via Vite dev server at http://localhost:5173</p>")
             return
 
-        if path == "/" or path == "":
+        # Strip repository prefix if requesting from GitHub Pages-configured build
+        prefix = "/ai-parking-congestion-intelligence"
+        if path.startswith(prefix):
+            path = path[len(prefix):]
+
+        if path == "/" or path == "" or path == "/index.html":
             path = "/index.html"
             
         file_path = os.path.abspath(os.path.join(static_dir, path.lstrip("/")))

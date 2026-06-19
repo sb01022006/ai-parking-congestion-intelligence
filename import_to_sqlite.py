@@ -4,8 +4,8 @@ import sqlite3
 import os
 from datetime import datetime, timedelta
 
-csv_path = "/Users/Syamantak1/Desktop/jan to may police violation_anonymized791b166.csv"
-db_path = "/Users/Syamantak1/.gemini/antigravity/scratch/parking_congestion_intelligence/violations.db"
+csv_path = os.path.join(os.path.dirname(__file__), "jan to may police violation_anonymized791b166.csv")
+db_path = os.path.join(os.path.dirname(__file__), "violations.db")
 
 # Remove existing database if it exists to import cleanly
 if os.path.exists(db_path):
