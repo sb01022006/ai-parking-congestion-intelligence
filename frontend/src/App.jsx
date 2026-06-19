@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://ai-parking-congestion-intelligence.onrender.com';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('analytics'); // analytics, dispatch, forecast
