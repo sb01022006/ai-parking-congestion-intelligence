@@ -34,9 +34,9 @@ export default function MapComponent({ hotspots, patrolRoute, selectedStation })
     return '#06b6d4';                  // Cyan (Low)
   };
 
-  // Radius based on violation count
-  const getMarkerRadius = (count) => {
-    return Math.min(25, Math.max(5, Math.sqrt(count) * 1.5));
+  // Radius based on congestion score
+  const getMarkerRadius = (score) => {
+    return Math.min(25, Math.max(5, Math.sqrt(score) * 2.0));
   };
 
   // Custom DivIcon for numbered patrol stops
@@ -68,9 +68,9 @@ export default function MapComponent({ hotspots, patrolRoute, selectedStation })
         {/* Heatmap/Hotspot Grid Circles */}
         {hotspots && hotspots.map((h, idx) => (
           <CircleMarker
-            key={`hotspot-${idx}-${h.latitude}-${h.longitude}`}
+            key={`hotspot-${idx}-${h.latitude}-${h.longitude}-${h.congestion_score}`}
             center={[h.latitude, h.longitude]}
-            radius={getMarkerRadius(h.count)}
+            radius={getMarkerRadius(h.congestion_score)}
             fillColor={getMarkerColor(h.congestion_score)}
             color={getMarkerColor(h.congestion_score)}
             weight={1}

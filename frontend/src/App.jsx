@@ -37,6 +37,10 @@ export default function App() {
   const [hotspots, setHotspots] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Raw Data Cache for fast weight sliders recalculation
+  const [rawStats, setRawStats] = useState(null);
+  const [rawHotspots, setRawHotspots] = useState([]);
+  
   // Congestion Simulator Weights
   const [carWeight, setCarWeight] = useState(0.7);
   const [scooterWeight, setScooterWeight] = useState(0.2);
@@ -89,7 +93,6 @@ export default function App() {
     if (selectedViolation !== 'All Violations') params.append('violation', selectedViolation);
     if (selectedDay !== 'All Days') params.append('day', selectedDay);
     
-    // Also send current weights to recalculate scores on the fly if needed (implemented in frontend scoring)
     const queryStr = params.toString() ? `?${params.toString()}` : '';
 
     Promise.all([
@@ -97,25 +100,8 @@ export default function App() {
       fetch(`${API_BASE_URL}/api/hotspots${queryStr}`).then(res => res.json())
     ])
     .then(([statsData, hotspotsData]) => {
-      // Recalculate weights dynamically in frontend to reflect simulator slider modifications
-      const updatedHotspots = hotspotsData.map(h => {
-        // Calculate based on sliders
-        let weight = 0.5;
-        // This is a mockup calculation to show slider reactivity instantly on the map!
-        // We modulate the database-returned score by the ratio of slider weights
-        const originalScore = h.congestion_score;
-        // Simple multiplier shift
-        const scale = (carWeight + scooterWeight + autoWeight + lgvWeight + busWeight) / 3.1;
-        const violScale = (mainRoadWeight + doubleParkWeight + wrongParkWeight + noParkWeight) / 2.9;
-        
-        return {
-          ...h,
-          congestion_score: originalScore * scale * violScale
-        };
-      });
-
-      setStats(statsData);
-      setHotspots(updatedHotspots);
+      setRawStats(statsData);
+      setRawHotspots(hotspotsData);
       setLoading(false);
     })
     .catch(err => {
@@ -124,10 +110,36 @@ export default function App() {
     });
   };
 
+  // Run fetch only when filters change
   useEffect(() => {
     fetchDashboardData();
+  }, [selectedStation, selectedVehicle, selectedViolation, selectedDay]);
+
+  // Recalculate weights locally and instantly
+  useEffect(() => {
+    if (!rawStats || !rawHotspots) return;
+
+    const scale = (carWeight + scooterWeight + autoWeight + lgvWeight + busWeight) / 3.1;
+    const violScale = (mainRoadWeight + doubleParkWeight + wrongParkWeight + noParkWeight) / 2.9;
+
+    const updatedHotspots = rawHotspots.map(h => {
+      const originalScore = h.congestion_score;
+      return {
+        ...h,
+        congestion_score: originalScore * scale * violScale
+      };
+    });
+
+    const activeZones = updatedHotspots.filter(h => h.congestion_score >= 10.0).length;
+
+    setStats({
+      ...rawStats,
+      avg_congestion: rawStats.avg_congestion * scale * violScale,
+      active_priority_zones: activeZones
+    });
+    setHotspots(updatedHotspots);
   }, [
-    selectedStation, selectedVehicle, selectedViolation, selectedDay,
+    rawStats, rawHotspots,
     carWeight, scooterWeight, autoWeight, lgvWeight, busWeight,
     mainRoadWeight, doubleParkWeight, wrongParkWeight, noParkWeight
   ]);
