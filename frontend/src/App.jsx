@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const API_BASE_URL = 'https://ai-parking-congestion-intelligence.onrender.com';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : 'https://ai-parking-congestion-intelligence.onrender.com';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('analytics'); // analytics, dispatch, forecast
@@ -639,6 +641,7 @@ export default function App() {
                 <MapComponent 
                   hotspots={hotspots} 
                   patrolRoute={showRouteOnMap ? enforcementPlan?.patrol_route : null}
+                  routeGeometry={showRouteOnMap ? enforcementPlan?.route_geometry : null}
                   selectedStation={selectedStation} 
                 />
               </div>
@@ -701,7 +704,9 @@ export default function App() {
                     </div>
                     <div className="meta-box">
                       <span className="label">Est. Patrol Distance</span>
-                      <span className="val text-purple">~8.4 km</span>
+                      <span className="val text-purple">
+                        {enforcementPlan.total_distance_km ? `~${enforcementPlan.total_distance_km} km` : '~8.4 km'}
+                      </span>
                     </div>
                     <div className="meta-box">
                       <span className="label">Target Zone</span>
@@ -732,6 +737,23 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+
+                  {enforcementPlan.navigation_steps && enforcementPlan.navigation_steps.length > 0 && (
+                    <div className="navigation-directions-panel glass-card">
+                      <h4 className="stops-title font-outfit" style={{marginTop: 0}}>🗺️ GPS Navigation Guide</h4>
+                      <div className="navigation-steps-list">
+                        {enforcementPlan.navigation_steps.map((step, idx) => (
+                          <div key={idx} className="nav-step-item">
+                            <span className="nav-step-bullet font-outfit">{idx + 1}</span>
+                            <div className="nav-step-text">
+                              <p className="instruction">{step.instruction}</p>
+                              {step.distance && <span className="distance font-outfit">{step.distance}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p>Select a police station to load coordinates.</p>
@@ -751,6 +773,7 @@ export default function App() {
                 <MapComponent 
                   hotspots={enforcementPlan?.hotspots || []} 
                   patrolRoute={showRouteOnMap ? enforcementPlan?.patrol_route : null}
+                  routeGeometry={showRouteOnMap ? enforcementPlan?.route_geometry : null}
                   selectedStation={dispatchStation} 
                 />
               </div>

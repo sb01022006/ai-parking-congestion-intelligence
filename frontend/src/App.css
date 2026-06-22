@@ -1219,3 +1219,67 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--text-secondary);
   line-height: 1.5;
 }
+
+/* GPS Turn-by-Turn Navigation Styles */
+.navigation-directions-panel {
+  margin-top: 20px;
+  padding: 20px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.navigation-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.nav-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.nav-step-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.nav-step-bullet {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.nav-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-step-text .instruction {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.nav-step-text .distance {
+  font-size: 10px;
+  color: var(--neon-cyan);
+  font-weight: 600;
+}
+

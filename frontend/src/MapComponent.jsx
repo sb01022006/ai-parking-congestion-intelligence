@@ -22,7 +22,7 @@ function MapController({ hotspots, route }) {
   return null;
 }
 
-export default function MapComponent({ hotspots, patrolRoute, selectedStation }) {
+export default function MapComponent({ hotspots, patrolRoute, selectedStation, routeGeometry }) {
   const DEFAULT_CENTER = [12.9716, 77.5946]; // Bengaluru Center
   const DEFAULT_ZOOM = 12;
 
@@ -49,7 +49,9 @@ export default function MapComponent({ hotspots, patrolRoute, selectedStation })
     });
   };
 
-  const routeCoordinates = patrolRoute ? patrolRoute.map(p => [p.latitude, p.longitude]) : [];
+  const routeCoordinates = routeGeometry && routeGeometry.length > 0 
+    ? routeGeometry 
+    : (patrolRoute ? patrolRoute.map(p => [p.latitude, p.longitude]) : []);
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>

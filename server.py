@@ -292,11 +292,15 @@ class PoliceViolationHandler(http.server.BaseHTTPRequestHandler):
 
                 # Route optimization (nearest-neighbor)
                 optimized_route = self.optimize_patrol_route(hotspots)
+                route_data = self.get_road_route_geometry(optimized_route)
 
                 data = {
                     "police_station": station,
                     "hotspots": hotspots,
-                    "patrol_route": optimized_route
+                    "patrol_route": optimized_route,
+                    "route_geometry": route_data["geometry"],
+                    "navigation_steps": route_data["navigation_steps"],
+                    "total_distance_km": route_data["total_distance_km"]
                 }
                 self.send_json_response(200, data)
 
@@ -440,26 +444,98 @@ class PoliceViolationHandler(http.server.BaseHTTPRequestHandler):
         if not hotspots:
             return []
         
-        # Greedy Nearest Neighbor
-        unvisited = list(hotspots)
-        # Start at the highest impact hotspot
-        current = unvisited.pop(0)
-        route = [current]
+        # Start at the highest impact hotspot (first in list)
+        start_node = hotspots[0]
+        other_nodes = hotspots[1:]
         
-        while unvisited:
-            nearest_idx = 0
-            min_dist = float('inf')
-            for idx, item in enumerate(unvisited):
-                # Simple Euclidean distance squared
-                dist = (item["latitude"] - current["latitude"])**2 + (item["longitude"] - current["longitude"])**2
-                if dist < min_dist:
-                    min_dist = dist
-                    nearest_idx = idx
+        import itertools
+        
+        def route_distance(seq):
+            dist = 0
+            prev = start_node
+            for node in seq:
+                dist += (node["latitude"] - prev["latitude"])**2 + (node["longitude"] - prev["longitude"])**2
+                prev = node
+            return dist
             
-            current = unvisited.pop(nearest_idx)
-            route.append(current)
-            
+        best_seq = min(itertools.permutations(other_nodes), key=route_distance)
+        
+        route = [start_node] + list(best_seq)
         return route
+
+    def get_road_route_geometry(self, route_stops):
+        if len(route_stops) < 2:
+            return {"geometry": [], "navigation_steps": [], "total_distance_km": 0.0}
+        
+        import urllib.request
+        import urllib.error
+        
+        # Construct OSRM API coordinates string: "lon1,lat1;lon2,lat2;..."
+        coords_str = ";".join([f"{stop['longitude']},{stop['latitude']}" for stop in route_stops])
+        url = f"https://routing.openstreetmap.de/routed-car/route/v1/driving/{coords_str}?overview=full&geometries=geojson&steps=true"
+        
+        try:
+            req = urllib.request.Request(
+                url, 
+                headers={'User-Agent': 'Mozilla/5.0 (VeloCity Traffic Planner; contact: team-confluent)'}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                if res_data.get("code") == "Ok":
+                    routes = res_data.get("routes", [])
+                    if routes:
+                        geojson_coords = routes[0].get("geometry", {}).get("coordinates", [])
+                        road_coords = [[coord[1], coord[0]] for coord in geojson_coords]
+                        
+                        total_dist_m = routes[0].get("distance", 0.0)
+                        total_dist_km = round(total_dist_m / 1000.0, 1)
+                        
+                        # Parse steps
+                        steps_data = []
+                        for leg in routes[0].get("legs", []):
+                            for step in leg.get("steps", []):
+                                name = step.get("name", "")
+                                maneuver = step.get("maneuver", {})
+                                m_type = maneuver.get("type", "")
+                                modifier = maneuver.get("modifier", "")
+                                distance = step.get("distance", 0)
+                                
+                                if distance == 0 and m_type != "arrive":
+                                    continue
+                                    
+                                instruction = ""
+                                if m_type == "depart":
+                                    instruction = f"Depart on {name if name else 'road'}"
+                                elif m_type == "arrive":
+                                    instruction = "Arrive at destination"
+                                elif m_type == "turn":
+                                    instruction = f"Turn {modifier} onto {name if name else 'road'}"
+                                elif m_type == "new name":
+                                    instruction = f"Continue onto {name}"
+                                else:
+                                    action = modifier if modifier else m_type
+                                    instruction = f"Go {action} onto {name if name else 'road'}"
+                                    
+                                steps_data.append({
+                                    "instruction": instruction.strip().replace("  ", " ").title(),
+                                    "distance": f"{int(distance)} m" if distance >= 1 else ""
+                                })
+                        
+                        return {
+                            "geometry": road_coords,
+                            "navigation_steps": steps_data,
+                            "total_distance_km": total_dist_km
+                        }
+        except Exception as e:
+            print(f"Error fetching OSRM road routing: {e}")
+            
+        # Fallback to straight lines if API call fails
+        fallback_coords = [[stop['latitude'], stop['longitude']] for stop in route_stops]
+        return {
+            "geometry": fallback_coords,
+            "navigation_steps": [{"instruction": "Navigate between stops", "distance": ""}],
+            "total_distance_km": 8.4
+        }
 
     def send_json_response(self, status, data):
         self.send_response(status)
